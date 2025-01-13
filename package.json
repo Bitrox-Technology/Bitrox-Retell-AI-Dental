@@ -1,0 +1,54 @@
+{
+  "name": "retell-frontend-nodejs-demo",
+  "version": "1.1.0",
+  "private": true,
+  "dependencies": {
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "axios": "^1.7.9",
+    "buffer": "^6.0.3",
+    "cors": "^2.8.5",
+    "crypto": "^1.0.1",
+    "crypto-browserify": "^3.12.1",
+    "express": "^4.19.2",
+    "node-fetch": "^2.6.7",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-scripts": "^5.0.1",
+    "retell-client-js-sdk": "^2.0.5",
+    "retell-sdk": "^4.13.0",
+    "stream": "^0.0.2"
+  },
+  "devDependencies": {
+    "@types/axios": "^0.9.36",
+    "@types/node": "^20.10.4",
+    "@types/react": "^19.0.6",
+    "@types/react-dom": "^19.0.3",
+    "react-app-rewired": "^2.2.1"
+  },
+  "scripts": {
+    "start": "react-scripts start  --openssl-legacy-provider",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
