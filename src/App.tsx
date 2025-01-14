@@ -49,6 +49,7 @@ const WebCallApp = () => {
 
       const data = await response.json();
       console.log("DATA----", data)
+      localStorage.setItem("CallId", data.call_id)
       setAccessToken(data.access_token);
     } catch (error) {
       console.error("Error fetching access token:", error);
@@ -73,7 +74,7 @@ const WebCallApp = () => {
         emitRawAudioSamples: false,
       });
 
-      console.log("Call---", call)
+      // console.log("Call---", call)
       setIsCallActive(true);
     } catch (error) {
       console.error("Error starting call:", error);
@@ -81,10 +82,27 @@ const WebCallApp = () => {
   };
 
   // Stop the call
-  const stopCall = () => {
+  const stopCall = async() => {
     try {
       retellWebClient.stopCall();
       setIsCallActive(false);
+      let getCallID = await fetch(`https://api.retellai.com/v2/get-call/${localStorage.getItem("CallId")}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer key_0c6937bc61dc83d817736c7d2bab", // Replace with your API token
+        }
+      });
+      let data = await getCallID.json()
+      console.log("Get call Data--------", data)
+      let uploadData = await fetch("http://localhost:3000/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+      localStorage.removeItem("CallId");
     } catch (error) {
       console.error("Error stopping call:", error);
     }
@@ -112,15 +130,15 @@ const WebCallApp = () => {
     });
 
     retellWebClient.on("audio", (audio) => {
-      console.log(audio);
+      console.log("Audio", audio);
     });
 
     retellWebClient.on("update", (update) => {
-      console.log(update);
+      // console.log("Update", update);
     });
 
-    retellWebClient.on("metadata", (metadata) => {
-      console.log(metadata);
+    retellWebClient.on("metadata", async(metadata) => {
+      console.log("Metadata", metadata);
     });
 
     return () => {
