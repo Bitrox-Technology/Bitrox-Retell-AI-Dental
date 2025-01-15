@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { RetellWebClient } from "retell-client-js-sdk";
 import './App.css'
+import emailjs from '@emailjs/browser';
 
 const WebCallApp = () => {
   const [retellWebClient] = useState(new RetellWebClient());
   const [isCallActive, setIsCallActive] = useState(false);
   const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [callId, setCallId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]); // Explicitly type as MediaDeviceInfo[]
   const [selectedMic, setSelectedMic] = useState<string>("default");
@@ -36,7 +38,7 @@ const WebCallApp = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer key_0c6937bc61dc83d817736c7d2bab", // Replace with your API token
+          Authorization: `Bearer key_0c6937bc61dc83d817736c7d2bab`, // Replace with your API token
         },
         body: JSON.stringify({
           agent_id: "agent_667c3a599a62a23e9b90189b9f",
@@ -49,7 +51,8 @@ const WebCallApp = () => {
 
       const data = await response.json();
       console.log("DATA----", data)
-      localStorage.setItem("CallId", data.call_id)
+      setCallId(data.call_id)
+      // localStorage.setItem("CallId", data.call_id)
       setAccessToken(data.access_token);
     } catch (error) {
       console.error("Error fetching access token:", error);
@@ -81,12 +84,29 @@ const WebCallApp = () => {
     }
   };
 
+  const sendEmail = (data: Record<string, any>, serviceID: string, templateId: string, publicKey: any) => {
+
+
+    emailjs
+      .send(serviceID, templateId, data, {
+        publicKey:publicKey,
+      })
+      .then(
+        () => {
+          console.log('SUCCESS!');
+        },
+        (error) => {
+          console.log('FAILED...', error.text);
+        },
+      );
+  };
+
   // Stop the call
-  const stopCall = async() => {
+  const stopCall = async () => {
     try {
       retellWebClient.stopCall();
       setIsCallActive(false);
-      let getCallID = await fetch(`https://api.retellai.com/v2/get-call/${localStorage.getItem("CallId")}`, {
+      let getCallID = await fetch(`https://api.retellai.com/v2/get-call/${callId}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -95,14 +115,29 @@ const WebCallApp = () => {
       });
       let data = await getCallID.json()
       console.log("Get call Data--------", data)
-      let uploadData = await fetch("http://localhost:3000/submit", {
+      let values = {
+        callData: data.start_timestamp || "",
+        serviceDesired: data.call_analysis.custom_analysis_data.reason_for_appointment || "",
+        dateAndTime: data.call_analysis.custom_analysis_data.get_date_and_time || "",
+        fullName: data.call_analysis.custom_analysis_data._full_name || "",
+        email: data.call_analysis.custom_analysis_data.email || "",
+        phone: data.call_analysis.custom_analysis_data.phone || "",
+        birthday: data.call_analysis.custom_analysis_data.birthday || "",
+        reasonForAppointment: data.call_analysis.custom_analysis_data.reason_for_appointment || "",
+        dentalInsurance: data.call_analysis.custom_analysis_data.detal_insurance || "",
+        callSummary: data.call_analysis.call_summary || "",
+        transcript: data.transcript || "",
+        recording: data.recording_url || "",
+      }
+      let uploadData = await fetch("https://bitrox-dental.vercel.app/submit", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(values),
       });
-      localStorage.removeItem("CallId");
+
+      sendEmail({name: data.call_analysis.custom_analysis_data._full_name, date: data.call_analysis.custom_analysis_data.get_date_and_time, email: data.call_analysis.custom_analysis_data.email}, "service_4aeezgn", "template_yg35myg", "x9lzwA0HaG0gyPS8A")
     } catch (error) {
       console.error("Error stopping call:", error);
     }
@@ -121,7 +156,7 @@ const WebCallApp = () => {
       console.error("Error occurred:", error);
       stopCall();
     });
-    
+
     retellWebClient.on("agent_start_talking", () => {
       console.log("agent_start_talking");
     });
@@ -137,7 +172,7 @@ const WebCallApp = () => {
       // console.log("Update", update);
     });
 
-    retellWebClient.on("metadata", async(metadata) => {
+    retellWebClient.on("metadata", async (metadata) => {
       console.log("Metadata", metadata);
     });
 
