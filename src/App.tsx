@@ -106,38 +106,66 @@ const WebCallApp = () => {
     try {
       retellWebClient.stopCall();
       setIsCallActive(false);
-      let getCallID = await fetch(`https://api.retellai.com/v2/get-call/${callId}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer key_0c6937bc61dc83d817736c7d2bab", // Replace with your API token
+      setTimeout(async () => {
+        try {
+          // Fetch call data
+          const getCallID = await fetch(`https://api.retellai.com/v2/get-call/${callId}`, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: "Bearer key_0c6937bc61dc83d817736c7d2bab", // Replace with your API token
+            },
+          });
+      
+          const data = await getCallID.json();
+          console.log("Get call Data--------", data);
+      
+          // Prepare values for upload
+          const values = {
+            callData: data.start_timestamp || "",
+            serviceDesired: data.call_analysis.custom_analysis_data.reason_for_appointment || "",
+            dateAndTime: data.call_analysis.custom_analysis_data.get_date_and_time || "",
+            fullName: data.call_analysis.custom_analysis_data._full_name || "",
+            email: data.call_analysis.custom_analysis_data.email || "",
+            phone: data.call_analysis.custom_analysis_data.phone || "",
+            birthday: data.call_analysis.custom_analysis_data.birthday || "",
+            reasonForAppointment: data.call_analysis.custom_analysis_data.reason_for_appointment || "",
+            dentalInsurance: data.call_analysis.custom_analysis_data.detal_insurance || "",
+            callSummary: data.call_analysis.call_summary || "",
+            transcript: data.transcript || "",
+            recording: data.recording_url || "",
+          };
+      
+          // Upload data to your endpoint
+          const uploadData = await fetch("https://bitrox-dental.vercel.app/submit", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(values),
+          });
+      
+          // console.log("Upload Response:", await uploadData.json());
+      
+          // Send email using emailjs
+          sendEmail(
+            {
+              name: data.call_analysis.custom_analysis_data._full_name,
+              email: data.call_analysis.custom_analysis_data.email,
+              date: data.call_analysis.custom_analysis_data.get_date_and_time
+              
+            },
+            "service_4aeezgn",
+            "template_yg35myg",
+            "x9lzwA0HaG0gyPS8A"
+          );
+      
+          console.log("Email sent successfully");
+        } catch (error) {
+          console.error("Error in processing:", error);
         }
-      });
-      let data = await getCallID.json()
-      console.log("Get call Data--------", data)
-      let values = {
-        callData: data.start_timestamp || "",
-        serviceDesired: data.call_analysis.custom_analysis_data.reason_for_appointment || "",
-        dateAndTime: data.call_analysis.custom_analysis_data.get_date_and_time || "",
-        fullName: data.call_analysis.custom_analysis_data._full_name || "",
-        email: data.call_analysis.custom_analysis_data.email || "",
-        phone: data.call_analysis.custom_analysis_data.phone || "",
-        birthday: data.call_analysis.custom_analysis_data.birthday || "",
-        reasonForAppointment: data.call_analysis.custom_analysis_data.reason_for_appointment || "",
-        dentalInsurance: data.call_analysis.custom_analysis_data.detal_insurance || "",
-        callSummary: data.call_analysis.call_summary || "",
-        transcript: data.transcript || "",
-        recording: data.recording_url || "",
-      }
-      let uploadData = await fetch("https://bitrox-dental.vercel.app/submit", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(values),
-      });
-
-      sendEmail({name: data.call_analysis.custom_analysis_data._full_name, date: data.call_analysis.custom_analysis_data.get_date_and_time, email: data.call_analysis.custom_analysis_data.email}, "service_4aeezgn", "template_yg35myg", "x9lzwA0HaG0gyPS8A")
+      }, 5000); // 5-second delay
+      
     } catch (error) {
       console.error("Error stopping call:", error);
     }
