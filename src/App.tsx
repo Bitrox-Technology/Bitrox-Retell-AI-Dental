@@ -38,10 +38,10 @@ const WebCallApp = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer key_0c6937bc61dc83d817736c7d2bab`, // Replace with your API token
+          Authorization: `Bearer ${process.env.RETELL_API}`, // Replace with your API token
         },
         body: JSON.stringify({
-          agent_id: "agent_667c3a599a62a23e9b90189b9f",
+          agent_id: `${process.env.REACT_APP_RETELL_AGENTID}`,
         }),
       });
 
@@ -113,7 +113,7 @@ const WebCallApp = () => {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
-              Authorization: "Bearer key_0c6937bc61dc83d817736c7d2bab", // Replace with your API token
+              Authorization: `Bearer ${process.env.RETELL_API}`, // Replace with your API token
             },
           });
       
