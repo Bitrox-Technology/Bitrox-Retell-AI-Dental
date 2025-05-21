@@ -155,8 +155,8 @@ const WebCallApp = () => {
               date: data.call_analysis.custom_analysis_data.get_date_and_time
               
             },
-            "service_4aeezgn",
-            "template_yg35myg",
+           "service_4aeezgn",
+            "template_e1h3mb8",
             "x9lzwA0HaG0gyPS8A"
           );
       
